@@ -79,9 +79,11 @@
     },
     "win": {
       "icon": "build/icon.ico",
-      "timeStampServer": "http://timestamp.comodoca.com/authenticode",
-      "certificateSubjectName": "Wonder Unit, Inc.",
-      "publisherName": "Wonder Unit, Inc."
+      "signtoolOptions": {
+        "timeStampServer": "http://timestamp.comodoca.com/authenticode",
+        "certificateSubjectName": "Wonder Unit, Inc.",
+        "publisherName": "Wonder Unit, Inc."
+      }
     },
     "dmg": {
       "sign": false,
