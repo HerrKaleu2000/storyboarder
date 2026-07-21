@@ -1,12 +1,16 @@
 /*
  * notarize for macOS
- *   via https://kilianvalkhof.com/2019/electron/notarizing-your-electron-application
- * 
+ *   via @electron/notarize (wraps Apple's `notarytool`)
+ *   https://github.com/electron/notarize
+ *
  * to configure, create an `electron-builder.env` with:
  *   APPLEID=...
  *   APPLEIDPASS=...
- * electron-builder will load these automatically before running this script
- * 
+ *   APPLETEAMID=...
+ * electron-builder will load these automatically before running this script.
+ * APPLETEAMID is required by notarytool-based notarization (the old
+ * altool-based flow that only needed appleId/appleIdPassword is retired).
+ *
  * to skip signing and notarizing during development, use this env var:
  *   CSC_IDENTITY_AUTO_DISCOVERY=false
  *
@@ -27,33 +31,25 @@ if (
       return
     }
 
-
-
-    // extremely hack lol -- ensures electron-notarize is re-installed
-    console.log('      • re-installing electron-notarize')
-    const { spawnSync } = require('child_process')
-    spawnSync('npm', ['install', 'electron-notarize'], { encoding: 'utf8' })
-
-    const { notarize } = require('electron-notarize')
-
-
+    const { notarize } = require('@electron/notarize')
 
     let { appOutDir } = context
     let appName = context.packager.appInfo.productFilename
     let {
       APPLEID,
       APPLEIDPASS,
+      APPLETEAMID,
     } = process.env
 
     let config = {
-      appBundleId: 'com.wonderunit.storyboarder',
       appPath: `${appOutDir}/${appName}.app`,
       appleId: APPLEID,
       appleIdPassword: APPLEIDPASS,
+      teamId: APPLETEAMID,
     }
 
     console.log('      • config for notarizing:')
-    console.log({ config })
+    console.log({ config: { ...config, appleIdPassword: '(hidden)' } })
 
     return await notarize(config)
   }
