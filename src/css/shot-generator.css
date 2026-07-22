@@ -151,6 +151,7 @@ kbd {
   justify-content: center;
   align-items: center;
   display: flex;
+  -webkit-app-region: no-drag;
 }
 
 #toolbar a:last-child {

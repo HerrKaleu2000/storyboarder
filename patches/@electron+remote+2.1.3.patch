@@ -1,0 +1,42 @@
+diff --git a/node_modules/@electron/remote/dist/src/main/index.js b/node_modules/@electron/remote/dist/src/main/index.js
+index c0a5713..63d1ec8 100644
+--- a/node_modules/@electron/remote/dist/src/main/index.js
++++ b/node_modules/@electron/remote/dist/src/main/index.js
+@@ -1,7 +1,8 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+-exports.enable = exports.isInitialized = exports.initialize = void 0;
++exports.enable = exports.isInitialized = exports.initialize = exports.setMainModule = void 0;
+ var server_1 = require("./server");
+ Object.defineProperty(exports, "initialize", { enumerable: true, get: function () { return server_1.initialize; } });
+ Object.defineProperty(exports, "isInitialized", { enumerable: true, get: function () { return server_1.isInitialized; } });
+ Object.defineProperty(exports, "enable", { enumerable: true, get: function () { return server_1.enable; } });
++Object.defineProperty(exports, "setMainModule", { enumerable: true, get: function () { return server_1.setMainModule; } });
+diff --git a/node_modules/@electron/remote/dist/src/main/server.js b/node_modules/@electron/remote/dist/src/main/server.js
+index 2105fd3..09b663f 100644
+--- a/node_modules/@electron/remote/dist/src/main/server.js
++++ b/node_modules/@electron/remote/dist/src/main/server.js
+@@ -349,6 +349,11 @@ function isInitialized() {
+     return initialized;
+ }
+ exports.isInitialized = isInitialized;
++let explicitMainModule = null;
++function setMainModule(mod) {
++    explicitMainModule = mod;
++}
++exports.setMainModule = setMainModule;
+ function initialize() {
+     if (initialized)
+         throw new Error('@electron/remote has already been initialized');
+@@ -369,6 +374,11 @@ function initialize() {
+             if (customEvent.defaultPrevented) {
+                 throw new Error(`Blocked remote.require('${moduleName}')`);
+             }
++            else if (explicitMainModule) {
++                // app called setMainModule() to bypass unreliable main-module
++                // detection (module.parent walk breaks on newer Electron versions)
++                customEvent.returnValue = explicitMainModule.require(moduleName);
++            }
+             else {
+                 // electron < 28
+                 if (process.mainModule) {

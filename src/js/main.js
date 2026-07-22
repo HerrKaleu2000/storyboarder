@@ -1,5 +1,9 @@
 const remoteMain = require('@electron/remote/main')
 remoteMain.initialize()
+// Electron's internal module wrapping means module.parent walks (used by
+// @electron/remote to resolve relative remote.require() paths) no longer
+// land on this file, so hand it the real entry module explicitly.
+remoteMain.setMainModule(module)
 const {app, ipcMain, BrowserWindow, dialog, powerSaveBlocker} = electron = require('electron')
 
 const fs = require('fs-extra')
