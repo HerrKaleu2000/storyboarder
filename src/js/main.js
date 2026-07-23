@@ -441,8 +441,8 @@ let openNewWindow = () => {
 
 let openWelcomeWindow = () => {
   welcomeWindow = new BrowserWindow({
-    width: 900,
-    height: 600,
+    width: 1280,
+    height: 720,
     center: true,
     show: false,
     resizable: false,

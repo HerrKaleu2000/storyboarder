@@ -122,25 +122,6 @@ document.querySelector('#close-button').onclick = () => {
   window.close()
 }
 
-document.querySelector('iframe').onload = ()=>{
-  Array.prototype.slice.call(document.querySelector('iframe').contentDocument.getElementsByTagName('a')).forEach((element)=>{
-    element.onclick = (e)=> {
-      shell.openExternal(e.currentTarget.href)
-      e.preventDefault()
-    }
-    element.addEventListener("mouseover", ()=>{sfx.rollover()})
-    element.addEventListener("pointerdown", ()=>{sfx.down()})
-  })
-
-  // handle dropping a file onto the iframe
-  let contentDocument = document.querySelector('iframe').contentDocument
-  contentDocument.ondragover = () => { return false }
-  contentDocument.ondragleave = () => { return false }
-  contentDocument.ondragend = () => { return false }
-  contentDocument.ondrop = onFileDrop
-}
-document.querySelector('iframe').src = "https://wonderunit.com/ads/storyboarder?" + Math.round(Date.now() / 1000 / 60 / 6)
-
 document.querySelector('#getting-started').onclick = event => {
   event.preventDefault()
   shell.openExternal("https://wonderunit.com/storyboarder/faq/#How-do-I-get-started")

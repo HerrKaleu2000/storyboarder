@@ -3,19 +3,17 @@ body {
   flex-direction: row;
   margin: 0;
   padding: 0;
+  width: 100vw;
+  height: 100vh;
   color: white;
   background: black;
   background-size: cover;
   font-family: var(--default-font-stack);
   font-weight: 300;
   overflow: hidden;
-}
-
-body {
-  background: rgb(229,229,229);
   user-select: none;
   -webkit-user-select: none;
-  cursor:default;
+  cursor: default;
 }
 
 #drag-handle {
@@ -25,10 +23,6 @@ body {
   height: 200px;
   -webkit-app-region: drag;
   pointer-events: none;
-}
-
-iframe {
-  height: 100vh;
 }
 
 #close-button {
@@ -43,6 +37,58 @@ iframe {
 
 #close-button:hover {
   opacity: 0.8;
+}
+
+/* left panel width is derived from the logo's rotated aspect ratio (1654x1080 trimmed
+   asset, displayed at 90deg) so the image touches all four edges with no crop/gap:
+   720px window height * (1080/1654) = 470.13px */
+#brand-panel {
+  position: relative;
+  flex: 0 0 470.13px;
+  width: 470.13px;
+  height: 100vh;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  background: black;
+  overflow: hidden;
+}
+
+#brand-logo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 720px;
+  height: 470.13px;
+  margin: 0;
+  padding: 0;
+  object-fit: cover;
+  transform: translate(-50%, -50%) rotate(-90deg);
+  transform-origin: center center;
+}
+
+#content {
+  position: relative;
+  flex: 0 0 809.87px;
+  width: 809.87px;
+  height: 100vh;
+  box-sizing: border-box;
+  background: rgb(229,229,229);
+  color: white;
+}
+
+/* 600px matches the fixed width of .recent-item / .button-grid (the widest
+   rows, both flush-left within this wrapper) so centering the wrapper
+   centers their actual visible footprint, not just an arbitrary box */
+#content-inner {
+  position: relative;
+  width: 600px;
+  height: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+  /* prevents .title's margin-top from collapsing through and pushing this
+     box (and the bottom-pinned .button-grid) below #content's bottom edge */
+  overflow: hidden;
 }
 
 .title {
@@ -93,11 +139,11 @@ iframe {
 }
 
 .button.blue {
-  background: #6f68f0;
+  background: #4D4D4D;
 }
 
 .button.blue:hover {
-  background: #7883f4;
+  background: #4D4D4D;
 }
 
 .button.grey:hover {
@@ -134,7 +180,7 @@ iframe {
 
 #recent {
   box-sizing: border-box;
-  height: 275px;
+  height: 390px;
   overflow-y: auto;
   padding-bottom: 20px;
 }
@@ -168,7 +214,7 @@ iframe {
 }
 
 .recent-item:hover {
-  background: #6f68f0;
+  background: #4D4D4D;
   color: rgba(255,255,255,0.6);
 
 }

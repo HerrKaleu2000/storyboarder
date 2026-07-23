@@ -171,7 +171,7 @@ kbd {
 }
 
 #toolbar a.active {
-  background-color: #5c65c0;
+  background-color: #4D4D4D;
   animation: blink 1.0s infinite;
   -webkit-animation: blink 1.0s infinite;
 }
@@ -223,8 +223,8 @@ kbd {
 .element.selected {
 
 
-  background-color: #53537c;
-  background-color: #5c65c0;
+  background-color: #4D4D4D;
+  background-color: #4D4D4D;
 }
 .element.selected span.type {
   opacity: 0.8;
@@ -521,7 +521,7 @@ button {
   outline: 0;
   border: 0;
   border-radius: 8px;
-  background: #1E88E5;
+  background: #4D4D4D;
   color: white;
   font-size: 20px;
   font-weight: 300;
@@ -537,11 +537,11 @@ button:last-child {
 }
 
 button:hover {
-  background: #249aea;
+  background: #4D4D4D;
 }
 
 button:active {
-  background: #1E88E5;
+  background: #4D4D4D;
 }
 
 button:disabled {
@@ -732,7 +732,7 @@ select {
 }
 .number-slider__input--text {
   color: black;
-  background-color: #53537c;
+  background-color: #4D4D4D;
   cursor: text;
 }
 .number-slider__input--move {
@@ -1121,7 +1121,7 @@ input[type="color"]::-webkit-color-swatch {
 .skeleton-selector__div .skeleton-selector__button {
   font-size: 13px;
   padding: 5px 5px 5px 5px;
-  background-color: #5c65c0;
+  background-color: #4D4D4D;
 }
 
 .object-property-heading {
@@ -1318,7 +1318,7 @@ div.fatal-error-screen__report::selection {
   background: rgba(255,255,255,0.2);
 }
 .select .select__option.select__option--is-selected {
-  background: #5c65c0;
+  background: #4D4D4D;
 }
 .select .select__option:focus,
 .select .select__option:active {
@@ -1349,7 +1349,7 @@ div.fatal-error-screen__report::selection {
 }
 
 .select .select__control.select__control--is-focused {
-  border-color: #5c65c0;
+  border-color: #4D4D4D;
 }
 
 .select .select__single-value {
@@ -1509,7 +1509,7 @@ div.fatal-error-screen__report::selection {
 }
 
 .checkbox input + label:active span {
-  /*background: #5c65c0;*/
+  /*background: #4D4D4D;*/
 }
 
 .checkbox input:checked + label:before {
@@ -2098,7 +2098,7 @@ a.button,
 /** TOOLTIPS END */
 
 
-/** #5c65c0 */
+/** #4D4D4D */
 
 .spinner-box {
   width: 100%;
@@ -2130,8 +2130,8 @@ a.button,
   justify-content: center;
   align-items: center;
   border-radius: 50%;
-  background: #5c65c0;
-  background: linear-gradient(0deg, #333639 33%, #5c65c0 100%);
+  background: #4D4D4D;
+  background: linear-gradient(0deg, #333639 33%, #4D4D4D 100%);
   animation: spin .8s linear 0s infinite;
 }
 

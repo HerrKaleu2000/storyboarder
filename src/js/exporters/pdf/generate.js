@@ -659,7 +659,7 @@ const drawBoardColumn = (doc, { rect, container, scene, board, imagesPath }, cfg
 const drawFooter = (doc, { rect }, cfg) => {
   let inner = rect.copy()
 
-  let text = "Storyboarder by \\\\ wonder unit"
+  let text = "Storyboarder by Public Ping Pong"
   doc
     .save()
     .font(THIN)

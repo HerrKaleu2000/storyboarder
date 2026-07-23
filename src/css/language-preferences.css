@@ -234,7 +234,7 @@ body {
 .modal-selector__div .modal-selector__button {
   font-size: 13px;
   padding: 5px 5px 5px 5px;
-  background-color: #5c65c0;
+  background-color: #4D4D4D;
 }
 
 .modal-row {
@@ -252,7 +252,7 @@ button {
     outline: 0;
     border: 0;
     border-radius: 8px;
-    background: #1E88E5;
+    background: #4D4D4D;
     color: white;
     font-size: 20px;
     font-weight: 300;
@@ -268,11 +268,11 @@ button {
   }
   
   button:hover {
-    background: #249aea;
+    background: #4D4D4D;
   }
   
   button:active {
-    background: #1E88E5;
+    background: #4D4D4D;
   }
   
   button:disabled {
