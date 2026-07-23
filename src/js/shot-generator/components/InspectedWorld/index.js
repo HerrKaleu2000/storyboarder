@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react'
+import React, {useCallback, useMemo, useState} from 'react'
 import {Math as _Math} from 'three'
 
 import {connect} from 'react-redux'
@@ -22,10 +22,13 @@ import {
 } from './../../../shared/reducers/shot-generator'
 
 import deepEqualSelector from './../../../utils/deepEqualSelector'
-import CopyFile from '../../utils/CopyFile'
+import importModelFile from '../../utils/importModelFile'
+import MODEL_FILE_DIALOG_FILTERS from '../../utils/modelFileDialogFilters'
+import notifications from '../../../window/notifications'
 import { useTranslation } from 'react-i18next'
 const InspectedWorld = React.memo(({updateObject, updateWorld, updateWorldRoom, updateWorldEnvironment, updateWorldFog, world, storyboarderFilePath}) => {
   const { t } = useTranslation()
+  const [isImporting, setIsImporting] = useState(false)
   const setGround = useCallback(() => updateWorld({ground: !world.ground}), [world.ground])
   const setRoomVisible = useCallback(() => updateWorldRoom({visible: !world.room.visible}), [world.room.visible])
   const setEnvVisible = useCallback(() => updateWorldEnvironment({visible: !world.environment.visible}), [world.environment.visible])
@@ -43,11 +46,22 @@ const InspectedWorld = React.memo(({updateObject, updateWorld, updateWorldRoom, 
   
   const setEnvScale = useCallback((scale) => updateWorldEnvironment({scale}), [])
   const setEnvRotation = useCallback((rotation) => updateWorldEnvironment({rotation: _Math.radToDeg(rotation)}), [])
-  const setEnvFile = useCallback((event) => {
+  const setEnvFile = useCallback(async (event) => {
     if (event.file) {
-      updateWorldEnvironment({file: CopyFile(storyboarderFilePath, event.file, 'environment')})
+      if (isImporting) return
+
+      setIsImporting(true)
+      try {
+        let file = await importModelFile(storyboarderFilePath, event.file, 'environment')
+        updateWorldEnvironment({file})
+      } catch (err) {
+        console.error(err)
+        notifications.notify({ message: `Could not import model file:\n${err.message}`, timing: 10 })
+      } finally {
+        setIsImporting(false)
+      }
     }
-  }, [])
+  }, [isImporting])
   const setGrayscale = useCallback(() => updateWorldEnvironment({grayscale: !world.environment.grayscale}), [world.environment.grayscale])
   
   const setAmbientIntensity = useCallback((intensity) => updateWorldEnvironment({intensity}), [])
@@ -154,7 +168,8 @@ const InspectedWorld = React.memo(({updateObject, updateWorld, updateWorldRoom, 
             <FileInput
               onChange={setEnvFile}
               label={EnvironmentModelLabel}
-              value={world.environment.file && path.basename(world.environment.file)}
+              filters={MODEL_FILE_DIALOG_FILTERS}
+              value={isImporting ? t("shot-generator.inspector.common.converting-file") : (world.environment.file && path.basename(world.environment.file))}
             />
             <NumberSlider label="X" value={world.environment.x} min={-30} max={30} onSetValue={setEnvX} textFormatter={ textFormatters.imperialToMetric }/>
             <NumberSlider label="Y" value={world.environment.y} min={-30} max={30} onSetValue={setEnvY} textFormatter={ textFormatters.imperialToMetric }/>

@@ -29,7 +29,9 @@ import HelpButton from '../../HelpButton'
 import { truncateMiddle } from '../../../../utils'
 
 import isUserModel from '../../../helpers/isUserModel'
-import CopyFile from '../../../utils/CopyFile'
+import importModelFile from '../../../utils/importModelFile'
+import MODEL_FILE_DIALOG_FILTERS from '../../../utils/modelFileDialogFilters'
+import notifications from '../../../../window/notifications'
 
 import FilepathsContext from '../../../contexts/filepaths'
 
@@ -115,6 +117,7 @@ const HairInspector = connect(
     }) => {
       const { t } = useTranslation()
       const [results, setResults] = useState()
+      const [isImporting, setIsImporting] = useState(false)
 
       const { getAssetPath } = useContext(FilepathsContext)
       const GRID_ITEM_NONE_SRC = getAssetPath('attachable', `hair-none.png`)
@@ -156,26 +159,36 @@ const HairInspector = connect(
       )
 
       const onSelectFile = useCallback(
-        (filepath) => {
+        async (filepath) => {
           if (filepath.file) {
-            let model = CopyFile(
-              storyboarderFilePath,
-              filepath.file,
-              'attachable'
-            )
-            onSelect({
-              model,
-              sceneObjectOverrides: {
-                name: path.basename(model, path.extname(model)),
-                ...USER_MODEL_HAIR_POSITION
-              }
-            })
+            if (isImporting) return
+
+            setIsImporting(true)
+            try {
+              let model = await importModelFile(
+                storyboarderFilePath,
+                filepath.file,
+                'attachable'
+              )
+              onSelect({
+                model,
+                sceneObjectOverrides: {
+                  name: path.basename(model, path.extname(model)),
+                  ...USER_MODEL_HAIR_POSITION
+                }
+              })
+            } catch (err) {
+              console.error(err)
+              notifications.notify({ message: `Could not import model file:\n${err.message}`, timing: 10 })
+            } finally {
+              setIsImporting(false)
+            }
           } else {
             // uncomment if "cancel" should remove existing custom hair
             // onSelect(null)
           }
         },
-        [storyboarderFilePath, onSelect]
+        [storyboarderFilePath, onSelect, isImporting]
       )
 
       let modelsList = [
@@ -255,11 +268,14 @@ const HairInspector = connect(
 
               <FileInput
                 value={
-                  isCustom
+                  isImporting
+                    ? t('shot-generator.inspector.common.converting-file')
+                    : isCustom
                     ? shortBaseName(selectedHair.model)
                     : t('shot-generator.inspector.common.select-file')
                 }
                 onChange={onSelectFile}
+                filters={MODEL_FILE_DIALOG_FILTERS}
                 refClassName={refClassName}
                 wrapperClassName={wrapperClassName}
               />

@@ -25,7 +25,9 @@ import FileInput from '../../FileInput'
 import SearchList from '../../SearchList'
 import deepEqualSelector from '../../../../utils/deepEqualSelector'
 import isUserModel from '../../../helpers/isUserModel'
-import CopyFile from '../../../utils/CopyFile'
+import importModelFile from '../../../utils/importModelFile'
+import MODEL_FILE_DIALOG_FILTERS from '../../../utils/modelFileDialogFilters'
+import notifications from '../../../../window/notifications'
 import { useTranslation } from 'react-i18next'
 const getModelData = deepEqualSelector([(state) => {
   const selectedId = getSelections(state)[0]
@@ -65,6 +67,7 @@ const ModelInspector = connect(
       const { t } = useTranslation()
       const sortedModels = useRef([])
       const [results, setResults] = useState([])
+      const [isImporting, setIsImporting] = useState(false)
       const models = useMemo(() => {
         let models = Object.values(allModels).filter(m => m.type === sceneObject.type)
         sortedModels.current = models.map((model, index) => { return {
@@ -122,17 +125,28 @@ const ModelInspector = connect(
         prevModel.current = currentModel
       }
   
-      const onSelectFile = filepath => {
+      const onSelectFile = async filepath => {
         if (filepath.file) {
+          if (isImporting) return
+
           let storyboarderFilePath
           withState((dispatch, state) => {
             storyboarderFilePath = state.meta.storyboarderFilePath
           })
-          let updatedModel = CopyFile(storyboarderFilePath, filepath.file, sceneObject.type)
-          if(sceneObject.type === "character") {
-            resetSkeleton(updatedModel)
-          } else {
-            updateObject(sceneObject.id, { model: updatedModel })
+
+          setIsImporting(true)
+          try {
+            let updatedModel = await importModelFile(storyboarderFilePath, filepath.file, sceneObject.type)
+            if(sceneObject.type === "character") {
+              resetSkeleton(updatedModel)
+            } else {
+              updateObject(sceneObject.id, { model: updatedModel })
+            }
+          } catch (err) {
+            console.error(err)
+            notifications.notify({ message: `Could not import model file:\n${err.message}`, timing: 10 })
+          } finally {
+            setIsImporting(false)
           }
         }
       }
@@ -166,9 +180,10 @@ const ModelInspector = connect(
             {isCustom ? <div className="column" style={{ padding: 2 }} />
               : <div className="column" style={{ alignSelf: "center", padding: 6, lineHeight: 1 }}>{t("shot-generator.inspector.common.or")}</div>
             }
-            <FileInput value={ isCustom ? selectValue() : t("shot-generator.inspector.common.select-file") }
+            <FileInput value={ isImporting ? t("shot-generator.inspector.common.converting-file") : isCustom ? selectValue() : t("shot-generator.inspector.common.select-file") }
                        title={ isCustom ? path.basename(sceneObject.model) : undefined }
                        onChange={ onSelectFile }
+                       filters={ MODEL_FILE_DIALOG_FILTERS }
                        refClassName={ refClassName }
                        wrapperClassName={ wrapperClassName }/>
             <div className="column" style= {{ width: 20, margin: "0 0 0 6px", alignSelf: "center", alignItems: "flex-end" } }>

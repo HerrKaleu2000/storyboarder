@@ -37,6 +37,8 @@ const assetExist = (path) => Boolean(cache.get()[path])
 
 const isAssetPending = (path) => (cache.get()[path] && cache.get()[path].status === LOADING_MODE.PENDING)
 
+const isAssetError = (path) => (cache.get()[path] && cache.get()[path].status === LOADING_MODE.ERROR)
+
 /**
  * Fetches resource
  * @param path Resource path
@@ -49,49 +51,51 @@ export const loadAsset = (path) => {
 
   const current = cache.get()
 
-  if (!current[path]) {
+  // (re)start the load if we've never seen this path, or if a previous
+  // attempt ended in an error — otherwise a single transient failure (e.g.
+  // a file that wasn't finished writing yet) would leave the asset stuck
+  // forever, since nothing else ever calls loader.load() for it again
+  if (!current[path] || current[path].status === LOADING_MODE.ERROR) {
     cache.set({
       ...cache.get(),
-      [path]: {data: null, status: LOADING_MODE.PENDING, usageCount: 0, lastUsedDate: Date.now()}
+      [path]: {data: null, status: LOADING_MODE.PENDING, usageCount: current[path] ? current[path].usageCount : 0, lastUsedDate: Date.now()}
     })
 
     return new Promise((resolve, reject) => {
-      const current = cache.get()
-
-      if (!current[path].data) {
-
-        let loader
-        if (!path.match(/(\.(png|jpg|jpeg|gif)$)|((\\|\/)(images|volumes)(\\|\/))/mi)) {
-          /** Current resource is model */
-          loader = gltfLoader
-        } else {
-          /** Current resource is texture */
-          loader = textureLoader
-        }
-
-        loader.load(
-          path,
-          value => {
-            cache.set({
-              ...cache.get(),
-              [path]: {data: value, status: LOADING_MODE.SUCCESS, usageCount: current[path].usageCount, lastUsedDate: current[path].lastUsedDate }
-            })
-            resolve(current[path])
-          },
-          null, //progress => dispatch({ type: 'PROGRESS', payload: { id, progress } }),
-          error => {
-            cache.set({
-              ...cache.get(),
-              [path]: {data: null, status: LOADING_MODE.ERROR}
-            })
-            reject(error)
-          }
-        )
+      let loader
+      if (!path.match(/(\.(png|jpg|jpeg|gif)$)|((\\|\/)(images|volumes)(\\|\/))/mi)) {
+        /** Current resource is model */
+        loader = gltfLoader
       } else {
-        resolve(current[path])
+        /** Current resource is texture */
+        loader = textureLoader
       }
+
+      loader.load(
+        path,
+        value => {
+          let entry = cache.get()[path]
+          cache.set({
+            ...cache.get(),
+            [path]: {data: value, status: LOADING_MODE.SUCCESS, usageCount: entry.usageCount, lastUsedDate: entry.lastUsedDate }
+          })
+          resolve(cache.get()[path])
+        },
+        null, //progress => dispatch({ type: 'PROGRESS', payload: { id, progress } }),
+        error => {
+          console.error(`[use-assets-manager] failed to load asset: ${path}`, error)
+          let entry = cache.get()[path]
+          cache.set({
+            ...cache.get(),
+            [path]: {data: null, status: LOADING_MODE.ERROR, usageCount: entry ? entry.usageCount : 0, lastUsedDate: Date.now()}
+          })
+          reject(error)
+        }
+      )
     })
   }
+
+  return Promise.resolve(current[path])
 }
 
 export const cleanUpCache = () => {
@@ -122,7 +126,7 @@ export const useAssets = (paths) => {
    * Fetch not fetched resources if 'paths' variable was changed
    */
   useEffect(() => {
-    const shouldLoad = paths.filter(asset => !assetExist(asset))
+    const shouldLoad = paths.filter(asset => !assetExist(asset) || isAssetError(asset))
     const pendingAssets = paths.filter(asset => isAssetPending(asset))
     if (shouldLoad.length > 0) {
       shouldLoad.map(loadAsset) // Fetch here

@@ -4,10 +4,11 @@ const remote = require('@electron/remote')
 const {dialog} = remote
 
 const FileInput = React.memo(({
-  value = "(none)", 
-  label, onChange, 
+  value = "(none)",
+  label, onChange,
   wrapperClassName="input-group",
   refClassName="file-input",
+  filters,
   ...props
 }) => {
   const onFileSelect = useCallback((e) => {
@@ -15,8 +16,8 @@ const FileInput = React.memo(({
     if (!onChange) {
       return false
     }
-    
-    dialog.showOpenDialog(null, {})
+
+    dialog.showOpenDialog(null, filters ? { filters } : {})
     .then(({ filePaths }) => {
       if (filePaths.length) {
         onChange({
@@ -34,8 +35,8 @@ const FileInput = React.memo(({
     .finally(() => {
       // automatically blur to return keyboard control
       document.activeElement.blur()
-    })    
-  }, [onChange])
+    })
+  }, [onChange, filters])
   
   return (
       <div className={ wrapperClassName }>

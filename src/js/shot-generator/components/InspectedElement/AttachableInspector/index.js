@@ -23,7 +23,9 @@ import Scrollable from '../../Scrollable'
 
 import AttachableEditor from './../AttachableEditor/index'
 import isUserModel from '../../../helpers/isUserModel'
-import CopyFile from '../../../utils/CopyFile'
+import importModelFile from '../../../utils/importModelFile'
+import MODEL_FILE_DIALOG_FILTERS from '../../../utils/modelFileDialogFilters'
+import notifications from '../../../../window/notifications'
 import { useTranslation } from 'react-i18next'
 const AttachableInspector = connect(
   state => ({
@@ -49,6 +51,7 @@ const AttachableInspector = connect(
     const [isModalVisible, showModal] = useState(false)
     const [results, setResults] = useState([])
     const [sceneObject, setSceneObject] = useState({})
+    const [isImporting, setIsImporting] = useState(false)
     const selectedId = useRef(null)
     const selectedModel = useRef(null)
     const sortedAttachables = useRef([])
@@ -127,16 +130,27 @@ const AttachableInspector = connect(
       undoGroupEnd()
     }
 
-    const onSelectFile = useCallback((filepath) => {
+    const onSelectFile = useCallback(async (filepath) => {
       if (filepath.file) {
+        if (isImporting) return
+
         let storyboarderFilePath
         withState((dispatch, state) => {
           storyboarderFilePath = state.meta.storyboarderFilePath
         })
-        let updatedModel = CopyFile(storyboarderFilePath, filepath.file, 'attachable')
-        onSelectItem(updatedModel)
+
+        setIsImporting(true)
+        try {
+          let updatedModel = await importModelFile(storyboarderFilePath, filepath.file, 'attachable')
+          onSelectItem(updatedModel)
+        } catch (err) {
+          console.error(err)
+          notifications.notify({ message: `Could not import model file:\n${err.message}`, timing: 10 })
+        } finally {
+          setIsImporting(false)
+        }
       }
-    }, [id, onSelectItem])
+    }, [id, onSelectItem, isImporting])
 
     const saveFilteredPresets = useCallback((filteredPreset) => {
       let presets = []
@@ -166,9 +180,10 @@ const AttachableInspector = connect(
             { isCustom ? <div className="column" style={{ padding: 2 }} />
               : <div className="column" style={{ alignSelf: "center", padding: 6, lineHeight: 1 } }>{t("shot-generator.inspector.common.or")}</div>
             }
-            <FileInput value={ isCustom ? selectValue() : t("shot-generator.inspector.common.select-file") }
+            <FileInput value={ isImporting ? t("shot-generator.inspector.common.converting-file") : isCustom ? selectValue() : t("shot-generator.inspector.common.select-file") }
                        title={ isCustom ? path.basename(sceneObject.model) : undefined }
                        onChange={ onSelectFile }
+                       filters={ MODEL_FILE_DIALOG_FILTERS }
                        refClassName={ refClassName }
                        wrapperClassName={ wrapperClassName }/>
             <div className="column" style={{ width: 20, margin: "0 0 0 6px", alignSelf: "center", alignItems: "flex-end" }}>
